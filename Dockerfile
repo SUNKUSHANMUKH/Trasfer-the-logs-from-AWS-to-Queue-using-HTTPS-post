@@ -1,7 +1,5 @@
 FROM python:3.10-slim
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY app.py .
-EXPOSE 5000
-CMD ["python", "app.py"]
+COPY sqs_puller.py .
+RUN pip install boto3 kafka-python
+CMD ["python", "sqs_puller.py"]
