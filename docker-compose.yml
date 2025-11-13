@@ -1,0 +1,39 @@
+services:
+  kafka:
+    image: redpandadata/redpanda:v23.2.12
+    container_name: kafka-broker
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp=1
+      - --memory=512M
+      - --reserve-memory=0M
+      - --node-id=0
+      - --check=false
+      - --kafka-addr=PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr=PLAINTEXT://kafka:9092
+    ports:
+      - "9092:9092"
+
+  kafka-http:
+    build: ./kafka-http
+    container_name: kafka-http
+    ports:
+      - "5000:5000"
+    depends_on:
+      - kafka
+    environment:
+      - KAFKA_BOOTSTRAP=kafka:9092
+
+  sqs-puller:
+    build: ./sqs-puller
+    container_name: sqs-puller
+    depends_on:
+      - kafka
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - SQS_QUEUE_URL=${SQS_QUEUE_URL}
+      - KAFKA_BOOTSTRAP=kafka:9092
